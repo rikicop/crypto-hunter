@@ -22,16 +22,19 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+export function numberWithCommas(x) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 const Carousel = () => {
   const [trending, setTrending] = useState([]);
   const classes = useStyles();
 
-  const { currency } = CryptoState();
+  const { currency, symbol } = CryptoState();
 
   const fetchTrendingCoins = async () => {
     const { data } = await axios.get(TrendingCoins(currency));
 
-    console.log(trending);
     setTrending(data);
   };
 
@@ -41,6 +44,7 @@ const Carousel = () => {
   }, [currency]);
 
   const items = trending.map((coin) => {
+    let profit = coin.price_change_percentage_24h >= 0;
     return (
       <Link
         className={classes.carouselItem}
@@ -53,6 +57,21 @@ const Carousel = () => {
           height="80"
           style={{ marginBottom: 10 }}
         />
+        <span>
+          {coin?.symbol}
+          &nbsp;
+          <span
+            style={{
+              color: profit > 0 ? "rgb(14, 203, 129)" : "red",
+              fontWeight: 500,
+            }}
+          >
+            {profit && "+"} {coin?.price_change_percentage_24h?.toFixed(2)}%
+          </span>
+        </span>
+        <span style={{ fontSize: 22, fontWeight: 500 }}>
+          {symbol} {numberWithCommas(coin?.current_price?.toFixed(2))}
+        </span>
       </Link>
     );
   });
@@ -67,9 +86,10 @@ const Carousel = () => {
       <AliceCarousel
         mouseTracking
         infinite
-        autoPlayInterval={3000}
-        animationDuration={1000}
+        autoPlayInterval={1000}
+        animationDuration={1500}
         disableDotsControls={true}
+        disableButtonsControls={true}
         responsive={responsive}
         autoPlay={true}
         items={items}
